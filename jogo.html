@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caça às Estrelas ⭐</title>
+  <style>
+    :root {
+      --bg1: #17153b;
+      --bg2: #3b1f70;
+      --pink: #ff5db1;
+      --yellow: #ffe66d;
+      --cyan: #6df7ff;
+      --white: #fffafc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--white);
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+      background: radial-gradient(circle at top left, #52318c, transparent 38%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: grid; place-items: center; padding: 22px; overflow-x: hidden;
+    }
+    .game { width: min(900px, 100%); }
+    header { text-align: center; margin-bottom: 18px; }
+    h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.5rem); letter-spacing: -1px; }
+    h1 span { color: var(--yellow); text-shadow: 0 0 24px #ffe66d77; }
+    .subtitle { color: #e4d9ff; margin: 8px 0 0; }
+    .panel {
+      background: #ffffff12; border: 1px solid #ffffff2a; border-radius: 22px;
+      padding: 18px; box-shadow: 0 18px 60px #08051f55; backdrop-filter: blur(10px);
+    }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+    .stat { background: #100d2b88; border-radius: 15px; padding: 12px; text-align: center; }
+    .stat small { display: block; color: #cfc4f4; font-size: .8rem; text-transform: uppercase; letter-spacing: 1px; }
+    .stat strong { display: block; font-size: clamp(1.3rem, 4vw, 2rem); }
+    #score { color: var(--yellow); } #time { color: var(--cyan); } #best { color: var(--pink); }
+    .arena {
+      position: relative; height: 390px; overflow: hidden; border-radius: 17px;
+      border: 2px dashed #ffffff45;
+      background: radial-gradient(circle at 20% 25%, #ffffff12 0 2px, transparent 3px),
+                  radial-gradient(circle at 70% 60%, #ffffff18 0 2px, transparent 3px),
+                  #100d2b99;
+      background-size: 90px 90px, 130px 130px, auto;
+    }
+    .star {
+      position: absolute; border: 0; background: transparent; cursor: pointer;
+      font-size: 2.6rem; line-height: 1; padding: 4px; filter: drop-shadow(0 0 10px #ffe66d99);
+      animation: twinkle .8s ease-in-out infinite alternate;
+      transition: transform .12s;
+    }
+    .star:hover { transform: scale(1.22) rotate(12deg); }
+    .star:active { transform: scale(.7); }
+    @keyframes twinkle { from { filter: drop-shadow(0 0 3px #ffe66d55); } to { filter: drop-shadow(0 0 15px #ffe66ddd); } }
+    .message {
+      position: absolute; inset: 0; display: grid; place-content: center; text-align: center;
+      padding: 20px; background: #100d2b66;
+    }
+    .message h2 { margin: 0 0 8px; font-size: clamp(1.5rem, 4vw, 2rem); }
+    .message p { margin: 0 auto 16px; max-width: 440px; color: #e4d9ff; }
+    .controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    button.action {
+      border: 0; border-radius: 999px; padding: 12px 20px; font: inherit; font-weight: 800;
+      cursor: pointer; color: #21133e; background: var(--yellow);
+      box-shadow: 0 5px 0 #c9a93a; transition: transform .12s, box-shadow .12s;
+    }
+    button.action:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #c9a93a; }
+    button.action:active { transform: translateY(3px); box-shadow: 0 2px 0 #c9a93a; }
+    button.secondary { color: white; background: #ffffff1c; box-shadow: 0 5px 0 #ffffff18; border: 1px solid #ffffff30; }
+    .hint { text-align: center; color: #d3c7f1; font-size: .9rem; margin: 13px 0 0; }
+    .pop {
+      position: absolute; pointer-events: none; font-weight: 900; color: var(--yellow);
+      font-size: 1.5rem; animation: pop .65s ease-out forwards;
+    }
+    @keyframes pop { to { transform: translateY(-42px) scale(1.25); opacity: 0; } }
+    footer { text-align: center; color: #b9addd; font-size: .8rem; margin-top: 15px; }
+    @media (max-width: 520px) { .panel { padding: 12px; } .arena { height: 360px; } .stat { padding: 10px 5px; } }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <header>
+      <h1>Caça às <span>Estrelas</span> ⭐</h1>
+      <p class="subtitle">Seja rápido, pegue as estrelas e bata seu recorde!</p>
+    </header>
+
+    <section class="panel" aria-label="Jogo Caça às Estrelas">
+      <div class="stats">
+        <div class="stat"><small>Pontos</small><strong id="score">0</strong></div>
+        <div class="stat"><small>Tempo</small><strong id="time">30</strong></div>
+        <div class="stat"><small>Recorde</small><strong id="best">0</strong></div>
+      </div>
+
+      <div class="arena" id="arena">
+        <div class="message" id="message">
+          <h2>Pronto para a missão? 🚀</h2>
+          <p>Clique no máximo de estrelas que conseguir em 30 segundos. Cada estrela vale 1 ponto!</p>
+          <button class="action" id="start">Começar a jogar</button>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="action" id="restart">🔄 Recomeçar</button>
+        <button class="action secondary" id="sound">🔊 Som: ligado</button>
+      </div>
+      <p class="hint">Dica: não deixe nenhuma estrela escapar! ✨</p>
+    </section>
+    <footer>Feito com HTML, CSS e JavaScript — tudo em um único arquivo.</footer>
+  </main>
+
+  <script>
+    const arena = document.querySelector("#arena");
+    const scoreEl = document.querySelector("#score");
+    const timeEl = document.querySelector("#time");
+    const bestEl = document.querySelector("#best");
+    const message = document.querySelector("#message");
+    const startBtn = document.querySelector("#start");
+    const restartBtn = document.querySelector("#restart");
+    const soundBtn = document.querySelector("#sound");
+
+    let score = 0;
+    let timeLeft = 30;
+    let timer = null;
+    let playing = false;
+    let soundOn = true;
+    let best = Number(localStorage.getItem("star-hunt-best") || 0);
+    bestEl.textContent = best;
+
+    function beep(frequency = 700, duration = 0.08) {
+      if (!soundOn) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.frequency.value = frequency;
+        oscillator.type = "sine";
+        gain.gain.value = 0.06;
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + duration);
+        oscillator.onended = () => ctx.close();
+      } catch (e) { /* O jogo continua mesmo se o áudio não estiver disponível. */ }
+    }
+
+    function createStar() {
+      if (!playing) return;
+      const star = document.createElement("button");
+      star.className = "star";
+      star.type = "button";
+      star.textContent = ["⭐", "🌟", "✨", "💫"][Math.floor(Math.random() * 4)];
+      star.setAttribute("aria-label", "Pegar estrela");
+      const maxX = Math.max(0, arena.clientWidth - 58);
+      const maxY = Math.max(0, arena.clientHeight - 62);
+      star.style.left = Math.random() * maxX + "px";
+      star.style.top = Math.random() * maxY + "px";
+      star.style.transform = `rotate(${Math.random() * 35 - 17}deg)`;
+      star.addEventListener("click", () => {
+        if (!playing) return;
+        score++;
+        scoreEl.textContent = score;
+        beep(500 + Math.min(score * 20, 700));
+        const pop = document.createElement("span");
+        pop.className = "pop";
+        pop.textContent = "+1 ✨";
+        pop.style.left = star.style.left;
+        pop.style.top = star.style.top;
+        arena.appendChild(pop);
+        setTimeout(() => pop.remove(), 700);
+        star.remove();
+        createStar();
+      });
+      arena.appendChild(star);
+    }
+
+    function startGame() {
+      clearInterval(timer);
+      score = 0;
+      timeLeft = 30;
+      playing = true;
+      scoreEl.textContent = score;
+      timeEl.textContent = timeLeft;
+      arena.querySelectorAll(".star, .pop").forEach(el => el.remove());
+      message.hidden = true;
+      for (let i = 0; i < 4; i++) createStar();
+      beep(600, 0.12);
+      timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+      }, 1000);
+    }
+
+    function endGame() {
+      clearInterval(timer);
+      playing = false;
+      arena.querySelectorAll(".star").forEach(el => el.remove());
+      if (score > best) {
+        best = score;
+        bestEl.textContent = best;
+        localStorage.setItem("star-hunt-best", best);
+      }
+      message.innerHTML = `
+        <h2>${score >= 25 ? "Incrível! 🏆" : score >= 12 ? "Muito bem! 🎉" : "Boa tentativa! 💪"}</h2>
+        <p>Você pegou <strong>${score}</strong> estrela${score === 1 ? "" : "s"}! ${score > 0 ? "Que tal tentar bater seu recorde?" : "Tente novamente e pegue sua primeira estrela!"}</p>
+        <button class="action" id="playAgain">Jogar novamente</button>`;
+      message.hidden = false;
+      document.querySelector("#playAgain").addEventListener("click", startGame);
+      beep(420, 0.18);
+    }
+
+    startBtn.addEventListener("click", startGame);
+    restartBtn.addEventListener("click", startGame);
+    soundBtn.addEventListener("click", () => {
+      soundOn = !soundOn;
+      soundBtn.textContent = soundOn ? "🔊 Som: ligado" : "🔇 Som: desligado";
+      if (soundOn) beep();
+    });
+  </script>
+</body>
+</html>
